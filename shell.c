@@ -6,6 +6,8 @@
 
 #define MAX_LINE 80
 #define BUFFER_SIZE 1024
+#define ARG_SIZE 64
+#define DELIM " \t\n\a\r"
 
 char *sh_read_command(void)
 {
@@ -41,15 +43,64 @@ char *sh_read_command(void)
 	}
 }
 
-char **sh_split_command(char *);
-int sh_execute(char **);
+char **sh_split_command (char *command)
+{
+	int size = ARG_SIZE;
+	int position = 0;
+	char **args = malloc(sizeof(char *) * size);
+	char *arg;
+
+	if (!args) {
+		fprintf(stderr, "sh: allocation error\n");
+		exit(EXIT_FAILURE);
+	}
+
+	arg = strtok(command, DELIM);
+	while (arg != NULL) {
+		args[position] = arg;
+		position++;
+		if (position >= size) {
+			size += ARG_SIZE;
+			args = realloc(args, size);
+			if (!args) {
+				fprintf(stderr, "sh: allocation error\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		arg = strtok(NULL, DELIM);
+	}
+	args[position] = NULL;
+	return args;
+}
+
+int sh_execute (char **args)
+{
+	pid_t pid, wpid;
+	  int status;
+
+	  pid = fork();
+	  if (pid == 0) {
+	    if (execvp(args[0], args) == -1) {
+	      perror("sh");
+	    }
+	    exit(EXIT_FAILURE);
+	  } else if (pid < 0) {
+	    perror("lsh");
+	  } else {
+	    do {
+	      wpid = waitpid(pid, &status, WUNTRACED);
+	    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	  }
+
+	  return 1;
+}
 
 void sh_loop (void)
 {
 	char *command;
 	char **args;
 	int status;
-	
+
 	do {
 		printf("sh> ");
 		command = sh_read_command();
@@ -60,9 +111,6 @@ void sh_loop (void)
 
 int main ()
 {
-	int should_run = 1;
-
 	sh_loop();
-
 	return 0;
 }
