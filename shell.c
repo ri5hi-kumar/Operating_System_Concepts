@@ -9,6 +9,8 @@
 #define ARG_SIZE 64
 #define DELIM " \t\n\a\r"
 
+char *last_command = NULL;
+
 char *sh_read_command(void)
 {
 	int size = BUFFER_SIZE;
@@ -26,19 +28,20 @@ char *sh_read_command(void)
 
 		if (ch == EOF || ch == '\n') {
 			buffer[position] = '\0';
+			if (strcmp("!!", buffer) != 0)
+				last_command = buffer;
 			return buffer;
 		} else {
 			buffer[position] = ch;
 		}
 		position++;
-	}
-
-	if (position >= size) {
-		size += BUFFER_SIZE;
-		buffer = realloc(buffer, size);
-		if (!buffer) {
-			fprintf(stderr, "sh: allocation error\n");
-			exit(EXIT_FAILURE);
+		if (position >= size) {
+			size += BUFFER_SIZE;
+			buffer = realloc(buffer, size);
+			if (!buffer) {
+				fprintf(stderr, "sh: allocation error\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
 }
@@ -104,6 +107,14 @@ void sh_loop (void)
 	do {
 		printf("sh> ");
 		command = sh_read_command();
+		if (strcmp(command, "!!") == 0) {
+			if (last_command == NULL) {
+				printf("No History!\n");
+				status = 1;
+				continue;
+			}
+			command = last_command;
+		}
 		args = sh_split_command(command);
 		status = sh_execute(args);
 	} while (status);
