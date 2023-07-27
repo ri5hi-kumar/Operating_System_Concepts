@@ -28,8 +28,10 @@ char *sh_read_command(void)
 
 		if (ch == EOF || ch == '\n') {
 			buffer[position] = '\0';
-			if (strcmp("!!", buffer) != 0)
-				last_command = buffer;
+			if (strcmp("!!", buffer) != 0) {
+				last_command = malloc(sizeof(char) * size);
+				strcpy(last_command, buffer);
+			}
 			return buffer;
 		} else {
 			buffer[position] = ch;
@@ -113,7 +115,9 @@ void sh_loop (void)
 				status = 1;
 				continue;
 			}
-			command = last_command;
+			args = sh_split_command(last_command);
+			status = sh_execute(args);
+			continue;
 		}
 		args = sh_split_command(command);
 		status = sh_execute(args);
