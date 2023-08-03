@@ -81,23 +81,23 @@ char **sh_split_command (char *command)
 int sh_execute (char **args)
 {
 	pid_t pid, wpid;
-	  int status;
+	int status;
 
-	  pid = fork();
-	  if (pid == 0) {
-	    if (execvp(args[0], args) == -1) {
-	      perror("sh");
-	    }
-	    exit(EXIT_FAILURE);
-	  } else if (pid < 0) {
-	    perror("lsh");
-	  } else {
-	    do {
-	      wpid = waitpid(pid, &status, WUNTRACED);
-	    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	  }
+	pid = fork();
+	if (pid == 0) {
+		if (execvp(args[0], args) == -1) {
+	    		perror("sh");
+		}
+		exit(EXIT_FAILURE);
+	} else if (pid < 0) {
+		perror("lsh");
+	} else {
+		do {
+			wpid = waitpid(pid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	}
 
-	  return 1;
+	return 1;
 }
 
 void sh_loop (void)
