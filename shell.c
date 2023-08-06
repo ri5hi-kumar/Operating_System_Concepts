@@ -48,12 +48,17 @@ char *sh_read_command(void)
 	}
 }
 
-char **sh_split_command (char *command)
+char **sh_split_command(char *command)
 {
 	int size = ARG_SIZE;
 	int position = 0;
 	char **args = malloc(sizeof(char *) * size);
 	char *arg;
+
+	int input_redirection = 0;
+	int output_redirection = 0;
+	char *input_file = NULL;
+	char *output_file = NULL;
 
 	if (!args) {
 		fprintf(stderr, "sh: allocation error\n");
@@ -78,7 +83,7 @@ char **sh_split_command (char *command)
 	return args;
 }
 
-int sh_execute (char **args)
+int sh_execute(char **args)
 {
 	pid_t pid, wpid;
 	int status;
@@ -86,7 +91,7 @@ int sh_execute (char **args)
 	pid = fork();
 	if (pid == 0) {
 		if (execvp(args[0], args) == -1) {
-	    		perror("sh");
+			perror("sh");
 		}
 		exit(EXIT_FAILURE);
 	} else if (pid < 0) {
@@ -100,7 +105,7 @@ int sh_execute (char **args)
 	return 1;
 }
 
-void sh_loop (void)
+void sh_loop(void)
 {
 	char *command;
 	char **args;
@@ -124,7 +129,7 @@ void sh_loop (void)
 	} while (status);
 }
 
-int main ()
+int main(void)
 {
 	sh_loop();
 	return 0;
