@@ -98,6 +98,7 @@ char **sh_split_command(char *command)
 
 	int original_stdin = dup(STDIN_FILENO);
 	int original_stdout = dup(STDOUT_FILENO);
+
 	if (input_redirection) {
 		int input_fd = open(input_file, O_RDONLY);
 
@@ -106,6 +107,7 @@ char **sh_split_command(char *command)
 			exit(EXIT_FAILURE);
 		}
 		dup2(input_fd, STDIN_FILENO);
+		// dup2(input_fd, original_stdin);
 		close(input_fd);
 	}
 
@@ -117,6 +119,7 @@ char **sh_split_command(char *command)
 			exit(EXIT_FAILURE);
 		}
 		dup2(output_fd, STDOUT_FILENO);
+		// dup2(output_fd, original_stdout);
 		close(output_fd);
 	}
 
